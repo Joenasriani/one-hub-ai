@@ -13,9 +13,15 @@ function getProviderConfig(overrides = {}) {
   const baseUrl = normalizeString(overrides.baseUrl || process.env.OPENROUTER_BASE_URL || DEFAULT_BASE_URL);
 
   if (!apiKey) {
-    throw new Error(
-      'Missing ROBOMARKET_API. Set ROBOMARKET_API to call OpenRouter Auto Free model.'
-    );
+    throw new Error('Missing OPENROUTER_API_KEY. Set OPENROUTER_API_KEY to call OpenRouter.');
+  }
+
+  if (!provider) {
+    throw new Error('AI provider is required.');
+  }
+
+  if (!model) {
+    throw new Error('AI model is required.');
   }
 
   if (!provider) {
@@ -40,7 +46,7 @@ function getProviderConfig(overrides = {}) {
   }
 
   return {
-    provider: DEFAULT_PROVIDER,
+    provider: provider || DEFAULT_PROVIDER,
     model,
     apiKey,
     baseUrl,

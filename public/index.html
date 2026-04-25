@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>One Hub AI</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 2rem; max-width: 760px; }
+      textarea { width: 100%; min-height: 120px; }
+      button { margin-top: 0.75rem; padding: 0.6rem 1rem; }
+      .error { color: #b00020; margin-top: 1rem; font-weight: 600; }
+      .output { margin-top: 1rem; padding: 1rem; background: #f7f7f7; border-radius: 8px; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <h1>One Hub AI</h1>
+    <p>Generate or summarize text using the real backend OpenRouter API route.</p>
+
+    <label for="prompt">Prompt</label>
+    <textarea id="prompt" placeholder="Enter text to generate or summarize..."></textarea>
+
+    <div>
+      <button id="generateBtn" type="button">Generate</button>
+      <button id="summaryBtn" type="button">Research Summary</button>
+    </div>
+
+    <div id="error" class="error" role="alert"></div>
+    <div id="output" class="output"></div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

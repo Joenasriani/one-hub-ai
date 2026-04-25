@@ -23,11 +23,13 @@ node -e "const { generateText } = require('./src/ai/generate'); generateText({ p
 
 All AI-powered workflows in this repository route through:
 
-- **Provider:** `openrouter`
-- **Model:** `openrouter/auto` (or current OpenRouter Auto Free equivalent)
-- **API key env var:** `ROBOMARKET_API`
+```bash
+AI_MODEL=openrouter/auto
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_TIMEOUT_MS=30000
+```
 
-No hidden fallback providers are configured.
+## API routes
 
 ## Provider abstraction modules
 
@@ -42,18 +44,17 @@ No hidden fallback providers are configured.
     1) LLM generation step (prompt/script/metadata)
     2) External media rendering step
 
-## Environment setup
+`public/app.js` calls `/api/generate` directly via `fetch` and displays a visible error message if generation fails.
 
-Copy `.env.example` and set your key:
+## Local quick check
 
 ```bash
-cp .env.example .env
-# then set ROBOMARKET_API
+node --test test/ai.spec.js
 ```
 
-If `ROBOMARKET_API` is missing, code throws a clear runtime error instead of generating fake output.
+## Vercel redeploy after env changes
 
-## Logging / traceability
+After changing environment variables in Vercel, trigger a fresh deployment so functions pick up new values:
 
 Each generation helper returns provider and model metadata so outputs can be traced to the generating model.
 
