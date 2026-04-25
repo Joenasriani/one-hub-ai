@@ -1,48 +1,43 @@
-<div align="center">
+# One Hub AI
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+One Hub AI uses real server API routes for OpenRouter calls. Frontend code calls `/api/generate`.
 
-<h1>One Hub AI</h1>
-
-<p>AI provider defaults are standardized on OpenRouter Auto Free.</p>
-</div>
-
-## Default AI Provider Policy
-
-All AI-powered workflows in this repository should route through:
-
-- **Provider:** `openrouter`
-- **Model:** `openrouter/auto` (or current OpenRouter Auto Free equivalent)
-- **API key env var:** `ROBOMARKET_API`
-
-No hidden fallback providers are configured.
-
-## Added provider abstraction
-
-The following modules centralize AI behavior:
-
-- `src/ai/providerConfig.js`
-  - Centralized provider/model defaults and API key checks.
-- `src/ai/openrouterClient.js`
-  - OpenRouter chat completion client.
-- `src/ai/generate.js`
-  - Text generation and research summary helpers.
-- `src/ai/mediaWorkflow.js`
-  - Two-stage media workflow:
-    1) LLM generation step (prompt/script/metadata)
-    2) External media rendering step
-
-## Environment setup
-
-Copy `.env.example` and set your key:
+## Required environment variable
 
 ```bash
-cp .env.example .env
-# then set ROBOMARKET_API
+OPENROUTER_API_KEY=your_key_here
 ```
 
-If `ROBOMARKET_API` is missing, code throws a clear runtime error instead of generating fake output.
+Optional:
 
-## Logging / traceability
+```bash
+AI_MODEL=openrouter/auto
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_TIMEOUT_MS=30000
+```
 
-Each generation helper returns provider and model metadata so outputs can be traced to the generating model.
+## API routes
+
+- `POST /api/generate`
+  - Body: `{ "mode": "text" | "summary" | "storyboard" | "adCreative", "text": "..." }`
+  - Calls OpenRouter and returns live content.
+  - For `storyboard` and `adCreative`, returns a validated `structured` object to prevent blank UI regions.
+- `GET /api/test-openrouter`
+  - Runs a connectivity prompt and returns a live response.
+
+Both routes log whether `OPENROUTER_API_KEY` is detected.
+
+## Troubleshooting broken storyboard/ad creative outputs
+
+If you see blank frame text or broken image-like UI:
+
+1. Check `/api/generate` response JSON for `structured` fields.
+2. If `structured` is missing, backend now returns a visible error instead of partial/fake content.
+3. Run `/api/test-openrouter` to verify model connectivity.
+4. Redeploy after any Vercel env var change.
+
+## Local quick check
+
+```bash
+node --test test/ai.spec.js
+```
