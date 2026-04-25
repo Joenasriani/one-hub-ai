@@ -10,32 +10,6 @@ function requireTextInput(value, fieldName) {
   return normalized;
 }
 
-function extractJsonObject(rawOutput) {
-  const text = requireTextInput(rawOutput, 'model output');
-
-  const fencedMatch = text.match(/```json\s*([\s\S]*?)\s*```/i) || text.match(/```\s*([\s\S]*?)\s*```/i);
-  const candidate = fencedMatch ? fencedMatch[1] : text;
-
-  try {
-    return JSON.parse(candidate);
-  } catch {
-    const start = candidate.indexOf('{');
-    const end = candidate.lastIndexOf('}');
-    if (start >= 0 && end > start) {
-      return JSON.parse(candidate.slice(start, end + 1));
-    }
-    throw new Error('Model did not return valid JSON.');
-  }
-}
-
-function requireField(object, fieldName) {
-  const value = typeof object?.[fieldName] === 'string' ? object[fieldName].trim() : '';
-  if (!value) {
-    throw new Error(`Generated payload missing required field: ${fieldName}`);
-  }
-  return value;
-}
-
 async function generateText({ prompt, systemPrompt = 'You are a helpful AI assistant.' }) {
   const normalizedPrompt = requireTextInput(prompt, 'prompt');
   const normalizedSystemPrompt = requireTextInput(systemPrompt, 'systemPrompt');
@@ -60,25 +34,6 @@ async function generateSummary({ sourceText }) {
         content: 'Summarize the provided content with concise bullets and key takeaways.',
       },
       { role: 'user', content: normalizedSourceText },
-    ],
-  });
-}
-
-async function generateStoryboard({ context }) {
-  const normalizedContext = requireTextInput(context, 'context');
-
-  const response = await openRouterChat({
-    task: 'storyboard_generation',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'Return ONLY valid JSON with keys: frameTitle, frameDescription, cameraDirection, twist. Each value must be non-empty text. No markdown.',
-      },
-      {
-        role: 'user',
-        content: `Context: ${normalizedContext}`,
-      },
     ],
   });
 

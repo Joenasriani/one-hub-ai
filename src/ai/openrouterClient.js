@@ -21,25 +21,6 @@ function normalizeMessages(messages) {
   });
 }
 
-function normalizeAssistantContent(content) {
-  if (typeof content === 'string') {
-    return content.trim();
-  }
-
-  if (Array.isArray(content)) {
-    return content
-      .map((item) => {
-        if (typeof item === 'string') return item;
-        if (item && typeof item.text === 'string') return item.text;
-        return '';
-      })
-      .join('\n')
-      .trim();
-  }
-
-  return '';
-}
-
 async function openRouterChat({
   messages,
   task,
@@ -96,6 +77,10 @@ async function openRouterChat({
   const content = normalizeAssistantContent(data?.choices?.[0]?.message?.content);
 
   if (!content) {
+    throw new Error('OpenRouter response did not include a usable assistant message.');
+  }
+
+  if (typeof content !== 'string' || !content.trim()) {
     throw new Error('OpenRouter response did not include a usable assistant message.');
   }
 

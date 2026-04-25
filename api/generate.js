@@ -1,9 +1,4 @@
-const {
-  generateText,
-  generateSummary,
-  generateStoryboard,
-  generateAdCreative,
-} = require('../src/ai/generate');
+const { generateText, generateSummary } = require('../src/ai/generate');
 
 function sendJson(res, statusCode, payload) {
   res.statusCode = statusCode;
@@ -25,20 +20,12 @@ function readRequestBody(req) {
 
       try {
         resolve(JSON.parse(data));
-      } catch {
+      } catch (error) {
         reject(new Error('Invalid JSON body.'));
       }
     });
     req.on('error', (error) => reject(error));
   });
-}
-
-function mapErrorStatus(errorMessage) {
-  if (!errorMessage) return 500;
-  if (errorMessage.includes('required') || errorMessage.includes('Invalid JSON')) return 400;
-  if (errorMessage.includes('Missing OPENROUTER_API_KEY')) return 500;
-  if (errorMessage.includes('timed out')) return 504;
-  return 500;
 }
 
 module.exports = async function handler(req, res) {
@@ -52,43 +39,27 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = await readRequestBody(req);
+    const mode = body.mode === 'summary' ? 'summary' : 'text';
     const text = typeof body.text === 'string' ? body.text.trim() : '';
-    const mode = typeof body.mode === 'string' ? body.mode.trim() : 'text';
 
     if (!text) {
       sendJson(res, 400, { error: 'text is required.' });
       return;
     }
 
-    let result;
-    switch (mode) {
-      case 'summary':
-        result = await generateSummary({ sourceText: text });
-        break;
-      case 'storyboard':
-        result = await generateStoryboard({ context: text });
-        break;
-      case 'adCreative':
-        result = await generateAdCreative({ context: text });
-        break;
-      case 'text':
-      default:
-        result = await generateText({ prompt: text });
-        break;
-    }
+    const result = mode === 'summary'
+      ? await generateSummary({ sourceText: text })
+      : await generateText({ prompt: text });
 
     sendJson(res, 200, {
       mode,
       provider: result.provider,
       model: result.model,
       output: result.output,
-      structured: result.structured || null,
       task: result.task,
     });
   } catch (error) {
-    const message = error?.message || 'Failed to generate output.';
-    const statusCode = mapErrorStatus(message);
-    console.error('[api/generate] Request failed:', message);
-    sendJson(res, statusCode, { error: message });
+    console.error('[api/generate] Request failed:', error.message);
+    sendJson(res, 500, { error: error.message || 'Failed to generate output.' });
   }
 };

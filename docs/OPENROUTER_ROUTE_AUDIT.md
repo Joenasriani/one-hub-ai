@@ -4,8 +4,8 @@ Date: 2026-04-25
 
 ## Verification checklist
 
-1. **Real backend routes calling OpenRouter:**
-   - `api/generate.js` calls generation helpers.
+1. **Real backend route calling OpenRouter:**
+   - `api/generate.js` calls `generateText` / `generateSummary`.
    - `api/test-openrouter.js` calls `openRouterChat` directly.
 
 2. **Uses `process.env.OPENROUTER_API_KEY`:**
@@ -15,8 +15,8 @@ Date: 2026-04-25
    - `public/app.js` sends requests to `/api/generate`.
 
 4. **Proper error handling:**
-   - API handlers return explicit JSON errors and status codes.
-   - Frontend displays visible error text in `#error`.
+   - API handlers return explicit JSON errors and HTTP status codes.
+   - Frontend displays visible error text in the `#error` element.
 
 5. **Console logs API key detection:**
    - `api/generate.js` logs `OPENROUTER_API_KEY detected`.
@@ -28,5 +28,5 @@ Date: 2026-04-25
 7. **Visible generation failure error:**
    - `public/app.js` renders `Generation failed: ...`.
 
-8. **No fake output in runtime flow:**
-   - `text`, `summary`, `storyboard`, and `adCreative` modes all call OpenRouter.
+8. **Fake/mock output paths removed from runtime generation flow:**
+   - Primary user flow goes through `/api/generate` -> OpenRouter API call.
