@@ -1,13 +1,29 @@
 const { openRouterChat } = require('./openrouterClient');
 
+function requireTextInput(value, fieldName) {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+
+  if (!normalized) {
+    throw new Error(`${fieldName} is required.`);
+  }
+
+  return normalized;
+}
+
 /**
  * Build traceable media instructions in two stages:
  * 1) LLM generation step (prompt/scripts/metadata)
  * 2) Renderer step (external service execution)
  */
 async function buildMediaWorkflow({ type, goal, constraints = [] }) {
+  const normalizedType = requireTextInput(type, 'type');
+  const normalizedGoal = requireTextInput(goal, 'goal');
+  const normalizedConstraints = Array.isArray(constraints)
+    ? constraints.map((item) => (typeof item === 'string' ? item.trim() : '')).filter(Boolean)
+    : [];
+
   const llmStep = await openRouterChat({
-    task: `${type}_prompt_generation`,
+    task: `${normalizedType}_prompt_generation`,
     messages: [
       {
         role: 'system',
@@ -16,7 +32,7 @@ async function buildMediaWorkflow({ type, goal, constraints = [] }) {
       },
       {
         role: 'user',
-        content: `Media type: ${type}\nGoal: ${goal}\nConstraints: ${constraints.join(', ')}`,
+        content: `Media type: ${normalizedType}\nGoal: ${normalizedGoal}\nConstraints: ${normalizedConstraints.join(', ') || 'none'}`,
       },
     ],
   });
