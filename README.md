@@ -1,48 +1,45 @@
-<div align="center">
+# One Hub AI
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+One Hub AI now uses **real server API routes** for OpenRouter calls. Frontend code calls `/api/generate`; no mock generation path is used.
 
-<h1>One Hub AI</h1>
-
-<p>AI provider defaults are standardized on OpenRouter Auto Free.</p>
-</div>
-
-## Default AI Provider Policy
-
-All AI-powered workflows in this repository should route through:
-
-- **Provider:** `openrouter`
-- **Model:** `openrouter/auto` (or current OpenRouter Auto Free equivalent)
-- **API key env var:** `ROBOMARKET_API`
-
-No hidden fallback providers are configured.
-
-## Added provider abstraction
-
-The following modules centralize AI behavior:
-
-- `src/ai/providerConfig.js`
-  - Centralized provider/model defaults and API key checks.
-- `src/ai/openrouterClient.js`
-  - OpenRouter chat completion client.
-- `src/ai/generate.js`
-  - Text generation and research summary helpers.
-- `src/ai/mediaWorkflow.js`
-  - Two-stage media workflow:
-    1) LLM generation step (prompt/script/metadata)
-    2) External media rendering step
-
-## Environment setup
-
-Copy `.env.example` and set your key:
+## Required environment variable
 
 ```bash
-cp .env.example .env
-# then set ROBOMARKET_API
+OPENROUTER_API_KEY=your_key_here
 ```
 
-If `ROBOMARKET_API` is missing, code throws a clear runtime error instead of generating fake output.
+Optional:
 
-## Logging / traceability
+```bash
+AI_MODEL=openrouter/auto
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+OPENROUTER_TIMEOUT_MS=30000
+```
 
-Each generation helper returns provider and model metadata so outputs can be traced to the generating model.
+## API routes
+
+- `POST /api/generate`
+  - Body: `{ "mode": "text" | "summary", "text": "..." }`
+  - Calls OpenRouter and returns real generated content.
+- `GET /api/test-openrouter`
+  - Calls OpenRouter with a connectivity prompt and returns the live response.
+
+Both routes log whether `OPENROUTER_API_KEY` is detected.
+
+## Frontend behavior
+
+`public/app.js` calls `/api/generate` directly via `fetch` and displays a visible error message if generation fails.
+
+## Local quick check
+
+```bash
+node --test test/ai.spec.js
+```
+
+## Vercel redeploy after env changes
+
+After changing environment variables in Vercel, trigger a fresh deployment so functions pick up new values:
+
+1. Update project env vars in Vercel dashboard.
+2. Redeploy the latest commit (or push a no-op commit).
+3. Hit `/api/test-openrouter` and confirm `status: "ok"`.
