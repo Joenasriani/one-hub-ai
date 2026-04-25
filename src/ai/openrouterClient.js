@@ -74,7 +74,11 @@ async function openRouterChat({
   }
 
   const data = await response.json();
-  const content = data?.choices?.[0]?.message?.content;
+  const content = normalizeAssistantContent(data?.choices?.[0]?.message?.content);
+
+  if (!content) {
+    throw new Error('OpenRouter response did not include a usable assistant message.');
+  }
 
   if (typeof content !== 'string' || !content.trim()) {
     throw new Error('OpenRouter response did not include a usable assistant message.');
@@ -90,5 +94,6 @@ async function openRouterChat({
 }
 
 module.exports = {
+  normalizeAssistantContent,
   openRouterChat,
 };
