@@ -24,7 +24,7 @@ Result: **ready for constrained production use as a backend utility module**, wi
 **Assessment:** Pass for backend workflows.
 
 Primary journey:
-1. Configure `OPENROUTER_API_KEY`
+1. Configure `ROBOMARKET_API`
 2. Call helper (`generateText`, `generateSummary`, or `buildMediaWorkflow`)
 3. Receive traceable payload
 4. Handle output downstream

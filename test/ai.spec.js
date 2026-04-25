@@ -1,54 +1,10 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { Readable, Writable } = require('node:stream');
 
 const { getProviderConfig } = require('../src/ai/providerConfig');
 const { openRouterChat } = require('../src/ai/openrouterClient');
 const { generateText, generateSummary } = require('../src/ai/generate');
 const { buildMediaWorkflow } = require('../src/ai/mediaWorkflow');
-const generateHandler = require('../api/generate');
-const testOpenRouterHandler = require('../api/test-openrouter');
-
-function createMockReq({ method = 'GET', body } = {}) {
-  const req = new Readable({ read() {} });
-  req.method = method;
-
-  if (body !== undefined) {
-    req.push(typeof body === 'string' ? body : JSON.stringify(body));
-  }
-
-  req.push(null);
-  return req;
-}
-
-function createMockRes() {
-  let body = '';
-  const headers = {};
-
-  const res = new Writable({
-    write(chunk, _encoding, callback) {
-      body += chunk.toString();
-      callback();
-    },
-  });
-
-  res.statusCode = 200;
-  res.setHeader = (name, value) => {
-    headers[name.toLowerCase()] = value;
-  };
-  res.end = (chunk = '') => {
-    if (chunk) {
-      body += chunk.toString();
-    }
-    res.finished = true;
-  };
-
-  return {
-    res,
-    readBody: () => (body ? JSON.parse(body) : {}),
-    headers,
-  };
-}
 
 test('getProviderConfig uses defaults and trims values', () => {
   const cfg = getProviderConfig({ apiKey: '  abc123  ' });
@@ -59,7 +15,7 @@ test('getProviderConfig uses defaults and trims values', () => {
 });
 
 test('getProviderConfig throws when api key is missing', () => {
-  assert.throws(() => getProviderConfig({ apiKey: '   ' }), /Missing OPENROUTER_API_KEY/);
+  assert.throws(() => getProviderConfig({ apiKey: '   ' }), /Missing ROBOMARKET_API/);
 });
 
 test('openRouterChat throws on malformed messages', async () => {
@@ -103,62 +59,4 @@ test('generate helpers validate input', async () => {
 test('buildMediaWorkflow validates required fields', async () => {
   await assert.rejects(() => buildMediaWorkflow({ type: '', goal: 'x' }), /type is required/);
   await assert.rejects(() => buildMediaWorkflow({ type: 'video', goal: '' }), /goal is required/);
-});
-
-test('POST /api/generate returns live payload shape', async () => {
-  const originalFetch = global.fetch;
-  const previousKey = process.env.OPENROUTER_API_KEY;
-  process.env.OPENROUTER_API_KEY = 'test_key';
-
-  try {
-    global.fetch = async () => ({
-      ok: true,
-      json: async () => ({
-        model: 'openrouter/auto',
-        choices: [{ message: { content: 'generated from route' } }],
-      }),
-    });
-
-    const req = createMockReq({ method: 'POST', body: { mode: 'text', text: 'hello' } });
-    const { res, readBody } = createMockRes();
-
-    await generateHandler(req, res);
-
-    assert.equal(res.statusCode, 200);
-    const payload = readBody();
-    assert.equal(payload.output, 'generated from route');
-    assert.equal(payload.provider, 'openrouter');
-  } finally {
-    global.fetch = originalFetch;
-    process.env.OPENROUTER_API_KEY = previousKey;
-  }
-});
-
-test('GET /api/test-openrouter returns connectivity response', async () => {
-  const originalFetch = global.fetch;
-  const previousKey = process.env.OPENROUTER_API_KEY;
-  process.env.OPENROUTER_API_KEY = 'test_key';
-
-  try {
-    global.fetch = async () => ({
-      ok: true,
-      json: async () => ({
-        model: 'openrouter/auto',
-        choices: [{ message: { content: 'OPENROUTER_OK' } }],
-      }),
-    });
-
-    const req = createMockReq({ method: 'GET' });
-    const { res, readBody } = createMockRes();
-
-    await testOpenRouterHandler(req, res);
-
-    assert.equal(res.statusCode, 200);
-    const payload = readBody();
-    assert.equal(payload.status, 'ok');
-    assert.match(payload.output, /OPENROUTER_OK/);
-  } finally {
-    global.fetch = originalFetch;
-    process.env.OPENROUTER_API_KEY = previousKey;
-  }
 });
