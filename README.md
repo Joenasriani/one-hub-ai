@@ -1,15 +1,15 @@
+# One Hub AI
 
+**Author:** Joe Nasr  
+**Canonical identity:** https://joe-nasr-signals.vercel.app/v2/
 
-<p>Generate text, summaries, and media-prompt workflows through a single OpenRouter-first AI layer.</p>
-</div>
+One Hub AI is a small provider-integration layer for text generation, research-summary helpers, and media-planning workflows through OpenRouter.
 
-## What this app does (2-second clarity)
+## Current status
 
-One Hub AI is a backend utility layer for teams that want a **single, predictable entry point** for AI generation.
+Working utility prototype for controlled evaluation and bounded integration.
 
-- **Who it is for:** product engineers and automation builders.
-- **Main action:** call one helper and receive traced AI output.
-- **Primary CTA:** start with `generateText` to validate your API key and baseline model routing.
+It provides a single entry point for product engineers and automation workflows that need model routing plus returned provider and model metadata. The repository does not by itself establish public-scale reliability, security certification, compliance, or production performance.
 
 ## Quick start
 
@@ -19,9 +19,9 @@ cp .env.example .env
 node -e "const { generateText } = require('./src/ai/generate'); generateText({ prompt: 'Hello world' }).then(console.log).catch(console.error)"
 ```
 
-## Default AI Provider Policy
+## Provider policy
 
-All AI-powered workflows in this repository route through:
+AI workflows in this repository route through OpenRouter using the configured model policy.
 
 ```bash
 AI_MODEL=openrouter/auto
@@ -29,35 +29,25 @@ OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_TIMEOUT_MS=30000
 ```
 
-## API routes
+## Core modules
 
-## Provider abstraction modules
+- `src/ai/providerConfig.js`: provider defaults and API-key checks
+- `src/ai/openrouterClient.js`: OpenRouter request handling and timeout protection
+- `src/ai/generate.js`: text generation and research-summary helpers
+- `src/ai/mediaWorkflow.js`: model-generated media planning data followed by an external rendering responsibility
 
-- `src/ai/providerConfig.js`
-  - Centralized provider/model defaults and API key checks.
-- `src/ai/openrouterClient.js`
-  - OpenRouter chat completion client with request validation and timeout protection.
-- `src/ai/generate.js`
-  - Text generation and research summary helpers with strict input validation.
-- `src/ai/mediaWorkflow.js`
-  - Two-stage media workflow:
-    1) LLM generation step (prompt/script/metadata)
-    2) External media rendering step
+Any browser interface calling this layer should surface provider failures rather than representing failed or missing provider output as generated content.
 
-`public/app.js` calls `/api/generate` directly via `fetch` and displays a visible error message if generation fails.
-
-## Local quick check
+## Local checks
 
 ```bash
 node --test test/ai.spec.js
 ```
 
-## Vercel redeploy after env changes
+Passing repository tests establish only the code paths covered by those tests.
 
-After changing environment variables in Vercel, trigger a fresh deployment so functions pick up new values:
+## Audit record
 
-Each generation helper returns provider and model metadata so outputs can be traced to the generating model.
+`docs/MASTER_APP_AUDIT.md` contains an internal engineering self-audit. It is not an independent certification, external security assessment, or production-readiness guarantee.
 
-## Audit status
-
-A full quality audit against the 15-point production readiness framework is documented in `docs/MASTER_APP_AUDIT.md`.
+Repository: https://github.com/Joenasriani/one-hub-ai
