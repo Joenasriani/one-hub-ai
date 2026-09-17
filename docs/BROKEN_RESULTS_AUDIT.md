@@ -2,31 +2,34 @@
 
 Date: 2026-04-25
 
-## What the screenshots indicate
+This file is retained as a historical engineering record. It describes a storyboard/ad-creative remediation direction considered at that time. It must not be read as a statement of the repository's current supported API contract.
 
-- Storyboard modal shows an image but empty/black narrative panel.
-- Ad creative view shows a broken image asset area and sparse copy.
+## What the screenshots indicated
 
-## Root causes found in code before this patch
+- Storyboard modal showed an image but an empty/black narrative panel.
+- Ad creative view showed a broken image asset area and sparse copy.
 
-1. `POST /api/generate` only handled generic text/summary modes.
-2. No strict structured contract for storyboard/ad creative fields.
-3. Model output parsing assumed plain string only and did not normalize content arrays.
-4. UI had no dedicated rendering path for structured storyboard/ad fields.
+## Root causes recorded at the time
 
-## Fixes implemented
+1. `POST /api/generate` handled generic text/summary modes.
+2. There was no complete structured contract for storyboard/ad creative fields.
+3. Model output handling needed normalization for non-string content shapes.
+4. The browser UI did not contain a complete supported rendering path for those structured modes.
 
-- Added `storyboard` and `adCreative` modes to `/api/generate`.
-- Added strict JSON generation/parsing and required-field checks for:
-  - storyboard: `frameTitle`, `frameDescription`, `cameraDirection`, `twist`
-  - ad creative: `headline`, `subheadline`, `cta`, `visualPrompt`, `imageAlt`
-- Added assistant content normalization for array-style OpenRouter responses.
-- Updated frontend with explicit Storyboard and Ad Creative actions and structured rendering.
-- Errors now surface clearly when required structured fields are missing.
+## Current repository boundary
 
-## Deployment checks
+The supported `/api/generate` modes are:
 
-1. Redeploy Vercel after env changes.
-2. Verify `GET /api/test-openrouter` returns status `ok`.
-3. Verify `POST /api/generate` with `mode: "storyboard"` returns non-empty `structured` fields.
-4. Verify `POST /api/generate` with `mode: "adCreative"` returns non-empty `structured` fields.
+- `text`
+- `summary`
+
+The repository does not currently expose `storyboard` or `adCreative` as supported `/api/generate` modes. Earlier notes that described those modes as implemented are superseded by the current code.
+
+OpenRouter calls are restricted by the provider configuration to the free-only `openrouter/free` router.
+
+## Current verification targets
+
+1. `GET /api/test-openrouter` should return `status: "ok"` when a valid OpenRouter API key is configured and the upstream free router is available.
+2. `POST /api/generate` with `mode: "text"` should return generated text.
+3. `POST /api/generate` with `mode: "summary"` should return a summary.
+4. Unsupported generation modes should return HTTP 400 rather than silently falling back to text generation.
