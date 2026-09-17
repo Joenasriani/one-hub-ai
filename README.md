@@ -15,24 +15,25 @@ It provides a single entry point for product engineers and automation workflows 
 
 ```bash
 cp .env.example .env
-# set ROBOMARKET_API
+# set OPENROUTER_API_KEY
 node -e "const { generateText } = require('./src/ai/generate'); generateText({ prompt: 'Hello world' }).then(console.log).catch(console.error)"
 ```
 
 ## Provider policy
 
-AI workflows in this repository route through OpenRouter using the configured model policy.
+AI workflows in this repository are restricted to OpenRouter's free-only router. The runtime rejects non-OpenRouter providers, non-free model configuration, and alternate API base URLs.
 
 ```bash
-AI_MODEL=openrouter/auto
+AI_PROVIDER=openrouter
+AI_MODEL=openrouter/free
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 OPENROUTER_TIMEOUT_MS=30000
 ```
 
 ## Core modules
 
-- `src/ai/providerConfig.js`: provider defaults and API-key checks
-- `src/ai/openrouterClient.js`: OpenRouter request handling and timeout protection
+- `src/ai/providerConfig.js`: free-only provider/model enforcement and API-key checks
+- `src/ai/openrouterClient.js`: OpenRouter request handling, assistant-content normalization, and timeout protection
 - `src/ai/generate.js`: text generation and research-summary helpers
 - `src/ai/mediaWorkflow.js`: model-generated media planning data followed by an external rendering responsibility
 

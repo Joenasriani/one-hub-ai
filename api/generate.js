@@ -9,9 +9,11 @@ function sendJson(res, statusCode, payload) {
 function readRequestBody(req) {
   return new Promise((resolve, reject) => {
     let data = '';
+
     req.on('data', (chunk) => {
       data += chunk;
     });
+
     req.on('end', () => {
       if (!data) {
         resolve({});
@@ -21,9 +23,12 @@ function readRequestBody(req) {
       try {
         resolve(JSON.parse(data));
       } catch (error) {
-        reject(new Error('Invalid JSON body.'));
+        const parseError = new Error('Invalid JSON body.');
+        parseError.statusCode = 400;
+        reject(parseError);
       }
     });
+
     req.on('error', (error) => reject(error));
   });
 }
@@ -39,7 +44,13 @@ module.exports = async function handler(req, res) {
 
   try {
     const body = await readRequestBody(req);
-    const mode = body.mode === 'summary' ? 'summary' : 'text';
+    const requestedMode = typeof body.mode === 'string' ? body.mode.trim() : 'text';
+
+    if (!['text', 'summary'].includes(requestedMode)) {
+      sendJson(res, 400, { error: 'Unsupported mode. Use "text" or "summary".' });
+      return;
+    }
+
     const text = typeof body.text === 'string' ? body.text.trim() : '';
 
     if (!text) {
@@ -47,19 +58,20 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const result = mode === 'summary'
+    const result = requestedMode === 'summary'
       ? await generateSummary({ sourceText: text })
       : await generateText({ prompt: text });
 
     sendJson(res, 200, {
-      mode,
+      mode: requestedMode,
       provider: result.provider,
       model: result.model,
       output: result.output,
       task: result.task,
     });
   } catch (error) {
+    const statusCode = Number.isInteger(error?.statusCode) ? error.statusCode : 500;
     console.error('[api/generate] Request failed:', error.message);
-    sendJson(res, 500, { error: error.message || 'Failed to generate output.' });
+    sendJson(res, statusCode, { error: error.message || 'Failed to generate output.' });
   }
 };
