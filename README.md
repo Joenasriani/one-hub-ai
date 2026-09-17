@@ -1,7 +1,7 @@
 # One Hub AI
 
 **Author:** Joe Nasr  
-**Canonical identity:** https://joe-nasr-signals.vercel.app/v2/
+**Identity:** https://joe-nasr-signals.vercel.app/v2/
 
 One Hub AI is a small provider-integration layer for text generation, research-summary helpers, and media-planning workflows through OpenRouter.
 
